@@ -1,0 +1,226 @@
+<?php
+/**
+ * Copyright © element119. All rights reserved.
+ * See LICENCE.txt for licence details.
+ */
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+?>
+<div x-data="initSignatureCanvas()"
+     x-init="init()"
+     @resize.window="setCanvasWidth()"
+     class="flex flex-col mx-auto">
+    <canvas id="signature-canvas"
+            class="border-2 border-dashed rounded-2xl"
+            height="350"
+            :width="canvasWidth"
+            @mousedown="onMouseDown($event)"
+            @mousemove="onMouseMove($event)"
+            @mouseup="onMouseUp()"
+            @touchstart.passive="onTouchStart($event)"
+            @touchmove.passive="onTouchMove($event)"
+            @touchend.passive="onTouchEnd()">
+        <?= $escaper->escapeHtml(__('Your signature here...')); ?>
+    </canvas>
+    <div class="flex justify-between mt-4">
+        <button id="signature-submit"
+                class="btn btn-primary"
+                @click="submitSignature()">
+            <?= $escaper->escapeHtml(__('Submit Signature')); ?>
+        </button>
+        <button id="signature-clear"
+                class="btn btn-default"
+                @click="resetSignature()">
+            <?= $escaper->escapeHtml(__('Clear Signature')); ?>
+        </button>
+    </div>
+</div>
+<script>
+    function initSignatureCanvas()
+    {
+        return {
+            buttons: {
+                clear: null,
+                submit: null,
+            },
+            canvas: null,
+            canvasContext: null,
+            canvasWidth: 400,
+            currentMousePosition: {
+                x: 0,
+                y: 0,
+            },
+            isDrawing: false,
+            previousMousePosition: this.currentMousePosition,
+            signatureValue: null,
+            signatureValueDefault: null,
+
+            init()
+            {
+                this.buttons.clear = document.getElementById('signature-clear');
+                this.buttons.submit = document.getElementById('signature-submit');
+                this.canvas = document.getElementById('signature-canvas');
+                this.canvasContext = this.canvas.getContext('2d');
+                this.signatureValueDefault = this.canvas.toDataURL();
+
+                this.setCanvasWidth();
+                this.initExternalEventListeners();
+                this.initDrawingLogic();
+            },
+
+            initDrawingLogic()
+            {
+                const self = this;
+                this.resetSignature();
+
+                window.requestSignatureAnimationFrame = (function(callback) {
+                    return window.requestAnimationFrame || function(callback) {
+                        window.setTimeout(callback, 1000 / 60);
+                    };
+                })();
+
+                (function drawLoop() {
+                    requestSignatureAnimationFrame(drawLoop);
+                    self.renderSignature();
+                })();
+            },
+
+            initExternalEventListeners()
+            {
+                const self = this;
+
+                [
+                    'touchstart',
+                    'touchend',
+                    'touchmove',
+                ].forEach((eventName) => {
+                    document.body.addEventListener(
+                        eventName,
+                        (event) => {
+                            if (event.target === self.canvas) {
+                                event.preventDefault();
+                            }
+                        },
+                        {
+                            passive: false,
+                        }
+                    );
+                });
+            },
+
+            getMousePosition(mouseEvent)
+            {
+                const rect = this.canvas.getBoundingClientRect();
+
+                return {
+                    x: mouseEvent.clientX - rect.left,
+                    y: mouseEvent.clientY - rect.top,
+                }
+            },
+
+            getTouchPosition(touchEvent)
+            {
+                const rect = this.canvas.getBoundingClientRect();
+
+                return {
+                    x: touchEvent.touches[0].clientX - rect.left,
+                    y: touchEvent.touches[0].clientY - rect.top,
+                }
+            },
+
+            onMouseDown(event)
+            {
+                this.isDrawing = true;
+                this.previousMousePosition = this.getMousePosition(event);
+            },
+
+            onMouseMove(event)
+            {
+                this.currentMousePosition = this.getMousePosition(event);
+            },
+
+            onMouseUp()
+            {
+                this.isDrawing = false;
+            },
+
+            onTouchStart(event)
+            {
+                this.currentMousePosition = this.getTouchPosition(event);
+
+                const touch = event.touches[0];
+                const mouseEvent = new MouseEvent(
+                    'mousedown',
+                    {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY,
+                    }
+                );
+
+                this.canvas.dispatchEvent(mouseEvent);
+            },
+
+            onTouchMove(event)
+            {
+                const touch = event.touches[0];
+                const mouseEvent = new MouseEvent(
+                    'mousemove',
+                    {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY,
+                    }
+                );
+
+                this.canvas.dispatchEvent(mouseEvent);
+            },
+
+            onTouchEnd()
+            {
+                this.canvas.dispatchEvent(new MouseEvent('mouseup', {}));
+            },
+
+            renderSignature()
+            {
+                if (this.isDrawing) {
+                    this.canvasContext.moveTo(this.previousMousePosition.x, this.previousMousePosition.y);
+                    this.canvasContext.lineTo(this.currentMousePosition.x, this.currentMousePosition.y);
+                    this.canvasContext.stroke();
+
+                    this.previousMousePosition = this.currentMousePosition;
+                }
+            },
+
+            resetSignature()
+            {
+                this.canvas.width = this.canvas.width;
+                this.canvasContext.strokeStyle = '#222222';
+                this.canvasContext.lineWidth = 4;
+            },
+
+            setCanvasWidth()
+            {
+                this.canvasWidth = window.matchMedia('(max-width: 768px)').matches ? 400 : 600;
+                this.resetSignature();
+            },
+
+            submitSignature()
+            {
+                this.signatureValue = this.canvas.toDataURL();
+
+                if (this.signatureValue !== this.signatureValueDefault) {
+                    window.dispatchEvent(new CustomEvent(
+                        'signature-submitted',
+                        {
+                            detail: this.signatureValue,
+                        }
+                    ));
+                }
+            },
+        };
+    }
+</script>
