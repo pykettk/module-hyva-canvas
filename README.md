@@ -19,7 +19,7 @@
 
 <div align="center">
 
-
+![hyva-canvas](https://user-images.githubusercontent.com/40261741/199095544-11614a6e-a1c6-4326-84d2-50e3c4df13cf.gif)
 
 </div>
     
@@ -85,6 +85,8 @@ This event name is `customer-canvas-submitted` and the canvas data can be access
     ...
 }
 ```
+
+![canvas-demo](https://user-images.githubusercontent.com/40261741/199095607-829a692f-db1e-41b3-b313-663b5295c00f.gif)
 
 <br/>
 
