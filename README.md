@@ -54,9 +54,22 @@ php bin/magento setup:upgrade
 <br/>
 
 ## 📚 User Guide
-...
+### Adding the Signature Component
+To add the signature component to a page, simply use layout XML to create a new block using the `Element119_HyvaSignature::signature.phtml` template.
 
-<br>
+```xml
+<block name="my.signature.component" template="Element119_HyvaSignature::signature.phtml"/>
+```
+
+<br/>
+
+### Obtaining the Signature Value
+A custom JavaScript event is fired whenever the user submits their signature.
+This event name is `signature-submitted` and the signature image can be accessed via the event's `detail` object.
+
+![signature-demo](https://user-images.githubusercontent.com/40261741/199075851-22070660-9dbc-4c32-8456-a4e918e8ad56.gif)
+
+<br/>
 
 ---
 
