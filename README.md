@@ -18,11 +18,11 @@
 ---
 
 ## 📝 Features
-✔️ ...
+✔️ Adds an AlpineJS-powered signature component to Hyvä themes
 
-✔️ ...
+✔️ Allows customers to draw, reset, and submit signatures
 
-✔️ ...
+✔️ Responsive design to suit mobile and desktop devices
 
 <br/>
 
