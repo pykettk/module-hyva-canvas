@@ -5,17 +5,23 @@
  */
 declare(strict_types=1);
 
+use Element119\HyvaSignature\ViewModel\Signature;
+use Hyva\Theme\Model\ViewModelRegistry;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 
 /** @var Escaper $escaper */
 /** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var Signature $signatureViewModel */
+$signatureViewModel = $viewModels->require(Signature::class);
+$signatureBlockName = $signatureViewModel->getSignatureBlockName($block);
 ?>
-<div x-data="initSignatureCanvas()"
+<div x-data="initSignatureCanvas_<?= $escaper->escapeHtmlAttr($signatureBlockName); ?>()"
      x-init="init()"
      @resize.window="setCanvasWidth()"
      class="flex flex-col mx-auto">
-    <canvas id="signature-canvas"
+    <canvas id="signature-canvas-<?= $escaper->escapeHtmlAttr($signatureBlockName); ?>"
             class="border-2 border-dashed rounded-2xl"
             height="350"
             :width="canvasWidth"
@@ -28,12 +34,12 @@ use Magento\Framework\View\Element\Template;
         <?= $escaper->escapeHtml(__('Your signature here...')); ?>
     </canvas>
     <div class="flex justify-between mt-4">
-        <button id="signature-submit"
+        <button id="signature-submit-<?= $escaper->escapeHtmlAttr($signatureBlockName); ?>"
                 class="btn btn-primary"
                 @click="submitSignature()">
             <?= $escaper->escapeHtml(__('Submit Signature')); ?>
         </button>
-        <button id="signature-clear"
+        <button id="signature-clear-<?= $escaper->escapeHtmlAttr($signatureBlockName); ?>"
                 class="btn btn-default"
                 @click="resetSignature()">
             <?= $escaper->escapeHtml(__('Clear Signature')); ?>
@@ -41,7 +47,7 @@ use Magento\Framework\View\Element\Template;
     </div>
 </div>
 <script>
-    function initSignatureCanvas()
+    function initSignatureCanvas_<?= $escaper->escapeJs($signatureBlockName); ?>()
     {
         return {
             buttons: {
@@ -57,16 +63,17 @@ use Magento\Framework\View\Element\Template;
             },
             isDrawing: false,
             previousMousePosition: this.currentMousePosition,
-            signatureValue: null,
-            signatureValueDefault: null,
+            signatureBlockName: '<?= $escaper->escapeJs($signatureBlockName); ?>',
+            signatureImage: null,
+            signatureImageDefault: null,
 
             init()
             {
-                this.buttons.clear = document.getElementById('signature-clear');
-                this.buttons.submit = document.getElementById('signature-submit');
-                this.canvas = document.getElementById('signature-canvas');
+                this.buttons.clear = document.getElementById('signature-clear-' + this.signatureBlockName);
+                this.buttons.submit = document.getElementById('signature-submit-' + this.signatureBlockName);
+                this.canvas = document.getElementById('signature-canvas-' + this.signatureBlockName);
                 this.canvasContext = this.canvas.getContext('2d');
-                this.signatureValueDefault = this.canvas.toDataURL();
+                this.signatureImageDefault = this.canvas.toDataURL();
 
                 this.setCanvasWidth();
                 this.initExternalEventListeners();
@@ -207,13 +214,16 @@ use Magento\Framework\View\Element\Template;
 
             submitSignature()
             {
-                this.signatureValue = this.canvas.toDataURL();
+                this.signatureImage = this.canvas.toDataURL();
 
-                if (this.signatureValue !== this.signatureValueDefault) {
+                if (this.signatureImage !== this.signatureImageDefault) {
                     window.dispatchEvent(new CustomEvent(
                         'signature-submitted',
                         {
-                            detail: this.signatureValue,
+                            detail: {
+                                signatureBlockName: this.signatureBlockName,
+                                signatureImage: this.signatureImage,
+                            },
                         }
                     ));
                 }

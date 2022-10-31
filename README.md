@@ -24,6 +24,8 @@
 
 ✔️ Responsive design to suit mobile and desktop devices
 
+✔️ Supports multiple signature components per page
+
 <br/>
 
 ## 🔌 Installation
@@ -65,7 +67,18 @@ To add the signature component to a page, simply use layout XML to create a new 
 
 ### Obtaining the Signature Value
 A custom JavaScript event is fired whenever the user submits their signature.
-This event name is `signature-submitted` and the signature image can be accessed via the event's `detail` object.
+This event name is `signature-submitted` and the signature data can be accessed via its `detail` object:
+
+```
+{
+    ...
+    detail: {
+        signatureBlockName: "my_signature_component",
+        signatureImage: "data:image/png;base64,iVBORw0...",
+    },
+    ...
+}
+```
 
 ![signature-demo](https://user-images.githubusercontent.com/40261741/199075851-22070660-9dbc-4c32-8456-a4e918e8ad56.gif)
 
