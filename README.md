@@ -17,6 +17,12 @@
 
 ---
 
+<div align="center">
+
+![hyva-signature](https://user-images.githubusercontent.com/40261741/199088497-31330c8c-623e-4882-9c00-838099480be6.gif)
+
+</div>
+    
 ## 📝 Features
 ✔️ Adds an AlpineJS-powered signature component to Hyvä themes
 
