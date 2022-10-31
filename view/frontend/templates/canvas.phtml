@@ -215,9 +215,13 @@ $canvasBlockName = $canvasViewModel->getCanvasBlockName($block);
 
             submitCanvas()
             {
-                this.canvasImage = this.canvas.toDataURL();
+                const canvasImage = this.canvas.toDataURL();
 
-                if (this.canvasImage !== this.canvasImageDefault) {
+                if (this.canvasImage !== this.canvasImageDefault
+                    && this.canvasImage !== canvasImage
+                ) {
+                    this.canvasImage = canvasImage; 
+                     
                     window.dispatchEvent(new CustomEvent(
                         'customer-canvas-submitted',
                         {
