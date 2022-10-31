@@ -5,7 +5,7 @@
  */
 declare(strict_types=1);
 
-use Element119\HyvaSignature\ViewModel\Signature;
+use Element119\HyvaCanvas\ViewModel\Canvas;
 use Hyva\Theme\Model\ViewModelRegistry;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
@@ -13,15 +13,15 @@ use Magento\Framework\View\Element\Template;
 /** @var Escaper $escaper */
 /** @var Template $block */
 /** @var ViewModelRegistry $viewModels */
-/** @var Signature $signatureViewModel */
-$signatureViewModel = $viewModels->require(Signature::class);
-$signatureBlockName = $signatureViewModel->getSignatureBlockName($block);
+/** @var Canvas $canvasViewModel */
+$canvasViewModel = $viewModels->require(Canvas::class);
+$canvasBlockName = $canvasViewModel->getCanvasBlockName($block);
 ?>
-<div x-data="initSignatureCanvas_<?= $escaper->escapeHtmlAttr($signatureBlockName); ?>()"
+<div x-data="initCanvas_<?= $escaper->escapeHtmlAttr($canvasBlockName); ?>()"
      x-init="init()"
      @resize.window="setCanvasWidth()"
      class="flex flex-col mx-auto">
-    <canvas id="signature-canvas-<?= $escaper->escapeHtmlAttr($signatureBlockName); ?>"
+    <canvas id="canvas-<?= $escaper->escapeHtmlAttr($canvasBlockName); ?>"
             class="border-2 border-dashed rounded-2xl"
             height="350"
             :width="canvasWidth"
@@ -31,23 +31,23 @@ $signatureBlockName = $signatureViewModel->getSignatureBlockName($block);
             @touchstart.passive="onTouchStart($event)"
             @touchmove.passive="onTouchMove($event)"
             @touchend.passive="onTouchEnd()">
-        <?= $escaper->escapeHtml(__('Your signature here...')); ?>
+        <?= $escaper->escapeHtml(__('Your drawing here...')); ?>
     </canvas>
     <div class="flex justify-between mt-4">
-        <button id="signature-submit-<?= $escaper->escapeHtmlAttr($signatureBlockName); ?>"
+        <button id="canvas-submit-<?= $escaper->escapeHtmlAttr($canvasBlockName); ?>"
                 class="btn btn-primary"
-                @click="submitSignature()">
-            <?= $escaper->escapeHtml(__('Submit Signature')); ?>
+                @click="submitCanvas()">
+            <?= $escaper->escapeHtml(__('Submit')); ?>
         </button>
-        <button id="signature-clear-<?= $escaper->escapeHtmlAttr($signatureBlockName); ?>"
+        <button id="canvas-clear-<?= $escaper->escapeHtmlAttr($canvasBlockName); ?>"
                 class="btn btn-default"
-                @click="resetSignature()">
-            <?= $escaper->escapeHtml(__('Clear Signature')); ?>
+                @click="resetCanvas()">
+            <?= $escaper->escapeHtml(__('Clear')); ?>
         </button>
     </div>
 </div>
 <script>
-    function initSignatureCanvas_<?= $escaper->escapeJs($signatureBlockName); ?>()
+    function initCanvas_<?= $escaper->escapeJs($canvasBlockName); ?>()
     {
         return {
             buttons: {
@@ -55,7 +55,10 @@ $signatureBlockName = $signatureViewModel->getSignatureBlockName($block);
                 submit: null,
             },
             canvas: null,
+            canvasBlockName: '<?= $escaper->escapeJs($canvasBlockName); ?>',
             canvasContext: null,
+            canvasImage: null,
+            canvasImageDefault: null,
             canvasWidth: 400,
             currentMousePosition: {
                 x: 0,
@@ -63,17 +66,14 @@ $signatureBlockName = $signatureViewModel->getSignatureBlockName($block);
             },
             isDrawing: false,
             previousMousePosition: this.currentMousePosition,
-            signatureBlockName: '<?= $escaper->escapeJs($signatureBlockName); ?>',
-            signatureImage: null,
-            signatureImageDefault: null,
 
             init()
             {
-                this.buttons.clear = document.getElementById('signature-clear-' + this.signatureBlockName);
-                this.buttons.submit = document.getElementById('signature-submit-' + this.signatureBlockName);
-                this.canvas = document.getElementById('signature-canvas-' + this.signatureBlockName);
+                this.buttons.clear = document.getElementById('canvas-clear-' + this.canvasBlockName);
+                this.buttons.submit = document.getElementById('canvas-submit-' + this.canvasBlockName);
+                this.canvas = document.getElementById('canvas-' + this.canvasBlockName);
                 this.canvasContext = this.canvas.getContext('2d');
-                this.signatureImageDefault = this.canvas.toDataURL();
+                this.canvasImageDefault = this.canvas.toDataURL();
 
                 this.setCanvasWidth();
                 this.initExternalEventListeners();
@@ -84,15 +84,15 @@ $signatureBlockName = $signatureViewModel->getSignatureBlockName($block);
             {
                 const self = this;
 
-                window.requestSignatureAnimationFrame = (function(callback) {
+                window.requestCanvasAnimationFrame = (function(callback) {
                     return window.requestAnimationFrame || function(callback) {
                         window.setTimeout(callback, 1000 / 60);
                     };
                 })();
 
                 (function drawLoop() {
-                    requestSignatureAnimationFrame(drawLoop);
-                    self.renderSignature();
+                    requestCanvasAnimationFrame(drawLoop);
+                    self.renderCanvas();
                 })();
             },
 
@@ -190,7 +190,7 @@ $signatureBlockName = $signatureViewModel->getSignatureBlockName($block);
                 this.canvas.dispatchEvent(new MouseEvent('mouseup', {}));
             },
 
-            renderSignature()
+            renderCanvas()
             {
                 if (this.isDrawing) {
                     this.canvasContext.moveTo(this.previousMousePosition.x, this.previousMousePosition.y);
@@ -201,7 +201,7 @@ $signatureBlockName = $signatureViewModel->getSignatureBlockName($block);
                 }
             },
 
-            resetSignature()
+            resetCanvas()
             {
                 this.canvas.width = this.canvas.width;
             },
@@ -209,20 +209,20 @@ $signatureBlockName = $signatureViewModel->getSignatureBlockName($block);
             setCanvasWidth()
             {
                 this.canvasWidth = window.matchMedia('(max-width: 768px)').matches ? 400 : 600;
-                this.resetSignature();
+                this.resetCanvas();
             },
 
-            submitSignature()
+            submitCanvas()
             {
-                this.signatureImage = this.canvas.toDataURL();
+                this.canvasImage = this.canvas.toDataURL();
 
-                if (this.signatureImage !== this.signatureImageDefault) {
+                if (this.canvasImage !== this.canvasImageDefault) {
                     window.dispatchEvent(new CustomEvent(
-                        'signature-submitted',
+                        'customer-canvas-submitted',
                         {
                             detail: {
-                                signatureBlockName: this.signatureBlockName,
-                                signatureImage: this.signatureImage,
+                                canvasBlockName: this.canvasBlockName,
+                                canvasImage: this.canvasImage,
                             },
                         }
                     ));

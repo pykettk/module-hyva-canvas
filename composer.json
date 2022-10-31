@@ -1,7 +1,7 @@
 {
-    "name": "element119/module-hyva-signature",
+    "name": "element119/module-hyva-canvas",
     "type": "magento2-module",
-    "description": "A Magento 2 module that adds a signature component to Hyvä themes.",
+    "description": "A Magento 2 module that adds a HTML canvas component to Hyvä themes.",
     "license": "OSL-3.0",
     "authors": [
         {
@@ -14,7 +14,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Element119\\HyvaSignature\\": ""
+            "Element119\\HyvaCanvas\\": ""
         },
         "files": [
             "registration.php"

@@ -9,6 +9,6 @@ use Magento\Framework\Component\ComponentRegistrar;
 
 ComponentRegistrar::register(
     ComponentRegistrar::MODULE,
-    'Element119_HyvaSignature',
+    'Element119_HyvaCanvas',
     __DIR__
 );
