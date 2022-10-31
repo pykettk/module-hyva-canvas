@@ -76,7 +76,6 @@ use Magento\Framework\View\Element\Template;
             initDrawingLogic()
             {
                 const self = this;
-                this.resetSignature();
 
                 window.requestSignatureAnimationFrame = (function(callback) {
                     return window.requestAnimationFrame || function(callback) {
@@ -198,8 +197,6 @@ use Magento\Framework\View\Element\Template;
             resetSignature()
             {
                 this.canvas.width = this.canvas.width;
-                this.canvasContext.strokeStyle = '#222222';
-                this.canvasContext.lineWidth = 4;
             },
 
             setCanvasWidth()
